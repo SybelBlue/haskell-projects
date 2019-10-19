@@ -1,4 +1,4 @@
-data Expr = Val Int | Div Expr Expr deriving (Show)
+data Expr = Val Int | Div Expr Expr deriving (Show, Read)
 
 safeDiv :: Int -> Int -> Maybe Int
 safeDiv n m = if m == 0 then Nothing else Just (quot n m)
@@ -30,4 +30,6 @@ eval (Div x y) = eval x >>= (\n ->
 -- do block =?= Maybe Monad
 eval :: Expr -> Maybe Int
 eval (Val n) = return n
-eval (Div x y) = do {n <- eval x; m <- eval y; safeDiv n m}
+eval (Div x y) = do n <- eval x
+                    m <- eval y
+                    safeDiv n m

@@ -1,3 +1,6 @@
+import Data.Char
+import Data.List
+
 -- Method declared in following grammar
 -- <function name> :: <Optional Type Modifier Declarations... '=>'> <parameter type> -> ... <parameter type> -> <return type>
 -- Types are usually generic, should be as generic as possible
@@ -370,3 +373,7 @@ instance Functor (Barry a b) where
 -- interesting rip off of the meaning of composition
 instance Functor' ((->) r) where
   fmap' f g = f.g
+
+-- some function practice, helpful stuff.
+reverseVaporwave :: String -> String
+reverseVaporwave = reverse . intercalate "  " . map (pure . toUpper) . concat . words
