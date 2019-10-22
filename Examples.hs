@@ -212,6 +212,9 @@ data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Eq, Read)
 singleton :: a -> Tree a
 singleton x = Node x EmptyTree EmptyTree
 
+infiniteTree :: Int -> Tree Int
+infiniteTree n = Node n (infiniteTree (n + 1)) (infiniteTree (n + 1))
+
 -- insert into tree as a set
 treeInsert :: (Ord a) => a -> Tree a -> Tree a
 treeInsert x EmptyTree = singleton x
@@ -225,6 +228,8 @@ within :: (Eq a) => a -> Tree a -> Bool
 within _ EmptyTree = False
 within x (Node v left right) = x == v || x `within` left || x `within` right
 
+--
+
 -- rip off of the standard Eq class. This is standard syntax
 class Eq' a where
     (.==) :: a -> a -> Bool
@@ -234,13 +239,14 @@ class Eq' a where
 
 
 -- consider the following Type
-data TrafficLight = Red | Yellow | Green
+data TrafficLight = Red | Yellow | Green | Broken
 
 -- and the instance of Eq we wish to define specific to TrafficLight
 instance Eq TrafficLight where
     Red == Red = True
     Green == Green = True
     Yellow == Yellow = True
+    Broken == Broken = False
     _ == _ = False
     -- note that the circularity of the definition of == and /= allows only
     -- overriding one or the other
@@ -250,6 +256,7 @@ instance Show TrafficLight where
     show Red = "Red light"
     show Yellow = "Yellow light"
     show Green = "Green light"
+    show Broken = "Broken..."
 
 
 -- another rip off definition
@@ -375,5 +382,53 @@ instance Functor' ((->) r) where
   fmap' f g = f.g
 
 -- some function practice, helpful stuff.
-reverseVaporwave :: String -> String
-reverseVaporwave = reverse . intercalate "  " . map (pure . toUpper) . concat . words
+vaporwave :: String -> String
+vaporwave = unwords . map (pure . toUpper) . concat . words
+
+-- https://www.codewars.com/kata/moves-in-squared-strings-i/train/haskell
+-- note: intercalate "\n" == init . unlines
+vertMirror :: [Char] -> [Char]
+vertMirror = intercalate "\n" . map reverse . lines
+
+horMirror :: [Char] -> [Char]
+horMirror = intercalate "\n" . reverse . lines
+
+oper :: (String -> String) -> String -> String
+oper = ($)
+
+
+-- https://www.codewars.com/kata/two-sum/train/haskell
+-- /u/Vulwsztyn
+twoSum :: [Int] -> Int -> (Int,Int)
+twoSum xs n = head [(fst x, fst y) | x <- exs, y <- exs, snd x + snd y == n, fst x < fst y]
+  where exs = zip [0..] xs
+
+
+recur :: (a -> a) -> a
+recur f = let { x = f x } in x
+
+gps :: Int -> [Double] -> Int
+gps s xs = floor $ maximum $ map toAvgSpeed deltas
+  where toAvgSpeed = (/ (fromIntegral s)) . (*3600)
+        deltas = [ a - b | (a, b) <- zip (tail xs) xs ]
+
+encrypt :: String -> Int -> String
+encrypt = cryptWith alternate
+
+decrypt :: String -> Int -> String
+decrypt = cryptWith dealternate
+
+cryptWith :: (String -> String) -> String -> Int -> String
+cryptWith f s n
+  | n < 1     = s
+  | otherwise = cryptWith f (f s) (n - 1)
+
+alternate :: String -> String
+alternate = concat . foldl (\[a, b] c -> [b, c:a]) ["", ""] . reverse
+
+dealternate :: String -> String
+dealternate s = if length s `mod` 2 == 0 then evenAnswer else evenAnswer ++ [last s]
+  where evenAnswer = concat $ zipWith (\x y -> [x, y]) a b
+        n = quot (length s) 2
+        a = drop n s
+        b = take n s
